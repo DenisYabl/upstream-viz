@@ -94,40 +94,43 @@ def app():
         cable_model = st.selectbox("Тип кабеля", cable_df.index.to_list())
         cable_weight = cable_df.loc[cable_model]["cableWeight"]
 
-        p_head = st.text_input("Устьевое давление:", 11)
-        pump_depth = st.text_input("Глубина спуска:", 2700)
+        p_head = st.number_input("Устьевое давление:", min_value=0, value=11)
+        pump_depth = st.number_input("Глубина спуска:", min_value=0, value=2700)
         packers = st.text_input("Пакеры:", "2300,2400")
-        safety_limit = st.text_input("Коэффициент запаса:", 1.25)
+        safety_limit = st.number_input("Коэффициент запаса:", min_value=0.0, value=1.25)
         is_repaired = True if st.radio("Тип НКТ", ["Новые", "Ремонтные"]) == "Ремонтные" else False
 
         st.form_submit_button("Подобрать НКТ")
 
-    results = slv.solve(
-        pump_weight=int(pump_weight),
-        pump_nominal=int(pump_nominal),
-        ped_weight=int(ped_weight),
-        cable_weight=float(cable_weight),
-        p_head=int(p_head),
-        pump_depth=int(pump_depth),
-        packers=[int(p) for p in packers.replace(" ", "").split(",")],
-        safety_limit=float(safety_limit),
-        eps_limit=0.02,
-        keep="fit",
-        is_repaired=is_repaired
+    st.header("Подбор НКТ")
+    st.info(
+        "Для подбора НКТ введите параметры скважины и оборудования в поля ввода на левой панели и нажмите кнопку 'Подобрать НКТ'."
     )
 
-    best, simple = results
-    st.header("Подбор НКТ")
-    st.info("Для подбора НКТ введите параметры скважины и оборудования в поля ввода на левой панели и нажмите кнопку 'Подобрать НКТ''.")
-    if best:
+    try:
+        results = slv.solve(
+            pump_weight=int(pump_weight),
+            pump_nominal=int(pump_nominal),
+            ped_weight=int(ped_weight),
+            cable_weight=float(cable_weight),
+            p_head=int(p_head),
+            pump_depth=int(pump_depth),
+            packers=[int(p) for p in packers.replace(" ", "").split(",")],
+            safety_limit=float(safety_limit),
+            eps_limit=0.02,
+            keep="fit",
+            is_repaired=is_repaired
+        )
+
+        best, simple = results
         best_df = pd.DataFrame(calculate_extra_fields(best)).drop("id", axis=1)
         simple_df = pd.DataFrame(calculate_extra_fields(simple)).drop("id", axis=1)
         st.subheader("Надежный вариант")
         st.dataframe(df_styler(best_df))
         st.subheader("Простой вариант")
         st.dataframe(df_styler(simple_df))
-    else:
-        st.error("Невозможно найти подходящее решение")
+    except AssertionError as err:
+        st.error(err)
 
     with st.beta_expander("Калькулятор надежности"):
         st.subheader("Калькулятор надежности")
