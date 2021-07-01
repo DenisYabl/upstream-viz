@@ -1,2 +1,7 @@
 # upstream-viz
-Visualization for Upstream
+Приложение для визуализации работы подсистемы "Мехподъем".
+
+Запуск:
+```bash
+streamlit run app.py
+```

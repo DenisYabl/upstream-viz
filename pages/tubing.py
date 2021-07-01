@@ -70,7 +70,7 @@ def df_styler(df: pd.DataFrame):
     return df_styled
 
 
-def main():
+def app():
     nkt_dict_path = "./data/tubings.csv"
     pumps_path = "./data/pumps_weights.csv"
     ped_path = "./data/PED_weights.csv"
@@ -82,11 +82,6 @@ def main():
     cable_df = read_cable(cable_path)
 
     slv = Solver(nkt_part_dict)
-
-    st.set_page_config(
-        page_title="Мехподъем",
-        layout="wide"
-    )
 
     with st.sidebar.form("Исходные данные для расчета"):
         pump_model = st.selectbox("Модель ЭЦН", pump_df.index.to_list())
@@ -123,51 +118,51 @@ def main():
 
     best, simple = results
     st.header("Подбор НКТ")
+    st.info("Для подбора НКТ введите параметры скважины и оборудования в поля ввода на левой панели и нажмите кнопку 'Подобрать НКТ''.")
     if best:
         best_df = pd.DataFrame(calculate_extra_fields(best)).drop("id", axis=1)
         simple_df = pd.DataFrame(calculate_extra_fields(simple)).drop("id", axis=1)
-        st.write("Надежный вариант", df_styler(best_df))
-        st.write("Простой вариант", df_styler(simple_df))
+        st.subheader("Надежный вариант")
+        st.dataframe(df_styler(best_df))
+        st.subheader("Простой вариант")
+        st.dataframe(df_styler(simple_df))
     else:
         st.error("Невозможно найти подходящее решение")
 
-    st.header("Калькулятор надежности")
-    st.info("Указывайте параметры ступеней от верхней к нижней")
-    with st.form("Ступени НКТ"):
-        col1, col2 = st.beta_columns(2)
-        with col1:
-            type5 = st.selectbox("Тип ступени 5", ["-"] + list(nkt_part_dict.keys()))
-            type4 = st.selectbox("Тип ступени 4", ["-"] + list(nkt_part_dict.keys()))
-            type3 = st.selectbox("Тип ступени 3", ["-"] + list(nkt_part_dict.keys()))
-            type2 = st.selectbox("Тип ступени 2", ["-"] + list(nkt_part_dict.keys()))
-            type1 = st.selectbox("Тип ступени 1", ["-"] + list(nkt_part_dict.keys()))
-        with col2:
-            len5 = st.text_input("Длина ступени 5", 0)
-            len4 = st.text_input("Длина ступени 4", 0)
-            len3 = st.text_input("Длина ступени 3", 0)
-            len2 = st.text_input("Длина ступени 2", 0)
-            len1 = st.text_input("Длина ступени 1", 0)
-        st.form_submit_button("Рассчитать")
+    with st.beta_expander("Калькулятор надежности"):
+        st.subheader("Калькулятор надежности")
+        st.info("Указывайте параметры ступеней от верхней к нижней. После ввода параметров нажмите кнопку 'Рассчитать'.")
+        with st.form("Ступени НКТ"):
+            col1, col2 = st.beta_columns(2)
+            with col1:
+                type5 = st.selectbox("Тип ступени 5", ["-"] + list(nkt_part_dict.keys()))
+                type4 = st.selectbox("Тип ступени 4", ["-"] + list(nkt_part_dict.keys()))
+                type3 = st.selectbox("Тип ступени 3", ["-"] + list(nkt_part_dict.keys()))
+                type2 = st.selectbox("Тип ступени 2", ["-"] + list(nkt_part_dict.keys()))
+                type1 = st.selectbox("Тип ступени 1", ["-"] + list(nkt_part_dict.keys()))
+            with col2:
+                len5 = st.text_input("Длина ступени 5", 0)
+                len4 = st.text_input("Длина ступени 4", 0)
+                len3 = st.text_input("Длина ступени 3", 0)
+                len2 = st.text_input("Длина ступени 2", 0)
+                len1 = st.text_input("Длина ступени 1", 0)
+            st.form_submit_button("Рассчитать")
 
-    all_types = [type1, type2, type3, type4, type5]
-    all_lengths = [len1, len2, len3, len4, len5]
-    filtered = [(t, int(l)) for t, l in zip(all_types, all_lengths) if (t != "-") & (l != 0)]
-    if filtered:
-        types, lengths = list(zip(*filtered))
-        calculated_nkt = slv.calculate(
-            pump_weight=int(pump_weight),
-            ped_weight=int(ped_weight),
-            cable_weight=float(cable_weight),
-            p_head=int(p_head),
-            pump_depth=int(pump_depth),
-            types=types,
-            lengths=lengths
-        )
-        calculated_df = pd.DataFrame(calculate_extra_fields(calculated_nkt)).drop("id", axis=1)
-        st.write("Расчет компоновки", df_styler(calculated_df))
-    else:
-        st.warning("Укажите параметры хотя бы одной ступени")
-
-
-if __name__ == "__main__":
-    main()
+        all_types = [type1, type2, type3, type4, type5]
+        all_lengths = [len1, len2, len3, len4, len5]
+        filtered = [(t, int(l)) for t, l in zip(all_types, all_lengths) if (t != "-") & (l != 0)]
+        if filtered:
+            types, lengths = list(zip(*filtered))
+            calculated_nkt = slv.calculate(
+                pump_weight=int(pump_weight),
+                ped_weight=int(ped_weight),
+                cable_weight=float(cable_weight),
+                p_head=int(p_head),
+                pump_depth=int(pump_depth),
+                types=types,
+                lengths=lengths
+            )
+            calculated_df = pd.DataFrame(calculate_extra_fields(calculated_nkt)).drop("id", axis=1)
+            st.write("Расчет компоновки", df_styler(calculated_df))
+        else:
+            st.warning("Укажите параметры хотя бы одной ступени")
