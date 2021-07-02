@@ -1,5 +1,9 @@
 pandas~=1.2.4
-streamlit~=0.83.0
+streamlit~=0.84.0
+streamlit-aggrid~=0.1.9
 plotly~=5.1.0
 altair~=4.1.0
 
+
+PyYAML~=5.4.1
+requests~=2.25.1

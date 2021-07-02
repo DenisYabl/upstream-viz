@@ -1,0 +1,5 @@
+rest:
+  host: 192.168.4.65
+  port: 80
+  user: admin
+  password: "12345678"
