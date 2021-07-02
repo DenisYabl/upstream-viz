@@ -1,2 +1,5 @@
 pandas~=1.2.4
 streamlit~=0.83.0
+plotly~=5.1.0
+altair~=4.1.0
+
