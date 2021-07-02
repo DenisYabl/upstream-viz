@@ -38,9 +38,9 @@ def calculate_extra_fields(res_dict: dict):
     weakest_load = max([part["load"] for part in res_dict if part["max_load"] == weakest_max_load])
     for part in res_dict:
         podryv = (part["load"] - weakest_load) + weakest_max_load
-        part["podryv"] = (part["max_load"] if podryv < weakest_max_load else podryv) / 9806.65
-        part["self_weight"] = part["weight"] / 9806.65
-        part["load"] = part["load"] / 9806.65
+        part["podryv"] = part["max_load"] if podryv < weakest_max_load else podryv
+        for key in ["load", "max_load", "weight", "podryv"]:
+            part[key] = part[key] / 9806.65
     for (idx, part) in enumerate(res_dict):
         part["order"] = idx + 1
     return res_dict
@@ -52,13 +52,13 @@ def df_styler(df: pd.DataFrame):
         "order": "Ступень",
         "length": "Длина, м",
         "safety": "Запас",
-        "self_weight": "Вес ступени, т",
+        "weight": "Вес ступени, т",
         "load": "Общий вес, т",
         "max_load": "Предел текучести, т",
         "podryv": "Макс. нагрузка на подрыв, т"
     }
     format_dict = {
-        "Предел текучести, т": "{:.0f}",
+        "Предел текучести, т": "{:.1f}",
         "Запас": "{:.2f}",
         "Общий вес, т": "{:.1f}",
         "Вес ступени, т": "{:.1f}",
