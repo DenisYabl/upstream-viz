@@ -34,6 +34,6 @@ class MultiPage:
             self.pages,
             format_func=lambda page: page['title']
         )
-
+        st.markdown("---")
         # run the app function
         page['function']()
