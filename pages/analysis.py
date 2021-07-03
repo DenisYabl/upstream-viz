@@ -5,17 +5,19 @@ import datetime
 from ot_simple_connector.connector import Connector
 
 
-@st.cache
-def get_rest_config(file_path):
+def get_conf(file_path):
     with open(file_path, "r") as f:
-        conf = yaml.safe_load(f)
-        conf_rest = {k: v for k, v in conf["rest"].items() if k in ["host", "port", "user", "password"]}
-        return conf_rest
+        return yaml.safe_load(f)
+
+
+def get_criteria_description(conf, crit_name):
+    return conf["description"].get(crit_name, "Для выбранного критерия отсутвует описание")
 
 
 @st.cache
-def get_data(query, conf_path="config.yaml") -> pd.DataFrame:
-    conn = Connector(**get_rest_config(conf_path))
+def get_data(query, conf) -> pd.DataFrame:
+    conf_rest = {k: v for k, v in conf["rest"].items() if k in ["host", "port", "user", "password"]}
+    conn = Connector(**conf_rest)
     ds = conn.jobs.create(query, cache_ttl=60, tws=0, twf=0).dataset.load()
     return pd.DataFrame(ds)
 
@@ -76,18 +78,23 @@ def app():
         "Штуцирование": "crit_shtuz",
         "Все": "one"}
 
+    conf = get_conf("config.yaml")
     col1, col2 = st.beta_columns(2)
     with col1:
         date = st.date_input("Дата", datetime.date(2021, 5, 20))
     with col2:
         crit = st.selectbox("Критерий", list(criteria_dict.keys()))
 
-    query = f"""| readFile format=parquet path=upstream/analysis    
+    with st.beta_expander("Описание критерия"):
+        info_text = get_criteria_description(conf, criteria_dict[crit])
+        st.markdown(info_text)
+
+    query = f"""| readFile format=parquet path=upstream/analysis
     | eval day = strftime(_time, "%Y-%m-%d")
     | eval one = 1
     | search {criteria_dict[crit]}=1 AND day="{date.strftime("%Y-%m-%d")}" """
     with st.spinner("Загрузка данных..."):
-        df = get_data(query)
+        df = get_data(query, conf)
         if df.empty:
             st.warning("Нет скважин, удовлетворяющих выбранному критерию на выбранную дату")
         else:
