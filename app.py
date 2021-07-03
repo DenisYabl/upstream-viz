@@ -2,7 +2,7 @@ import streamlit as st
 
 # Custom imports
 from multipage import MultiPage
-from pages import start, tubing, analysis
+from pages import start, tubing, analysis, pump_selection
 
 st.set_page_config(
     page_title="Мехподъем",
@@ -19,6 +19,7 @@ st.title("ИПР ЦУД. Мехподъем")
 app.add_page("Стартовая страница", start.app)
 app.add_page("Анализ фонда", analysis.app)
 app.add_page("Подбор НКТ", tubing.app)
+app.add_page("Подбор УЭЦН", pump_selection.app)
 
 # The main app
 app.run()
