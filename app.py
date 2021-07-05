@@ -2,7 +2,7 @@ import streamlit as st
 
 # Custom imports
 from multipage import MultiPage
-from pages import start, tubing, analysis, pump_selection, virtual_flow_meter
+from pages import start, tubing, analysis, pump_selection, virtual_flow_meter, well_what_if, potentials
 
 st.set_page_config(
     page_title="Мехподъем",
@@ -19,6 +19,8 @@ st.title("ИПР ЦУД. Мехподъем")
 app.add_page("Стартовая страница", start.app)
 app.add_page("Анализ фонда", analysis.app)
 app.add_page("Виртуальный расходомер", virtual_flow_meter.app)
+app.add_page("What-If анализ скважины (WIP)", well_what_if.app)
+app.add_page("Анализ и достижимость потенциалов", potentials.app)
 app.add_page("Подбор НКТ", tubing.app)
 app.add_page("Подбор УЭЦН", pump_selection.app)
 
