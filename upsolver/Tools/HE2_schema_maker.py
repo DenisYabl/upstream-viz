@@ -14,7 +14,7 @@ inclination = None
 HKT = None
 
 
-def make_oilpipe_schema_from_OT_dataset(dataset, folder="../data/", calc_df=None, ignore_Watercut=False):
+def make_oilpipe_schema_from_OT_dataset(dataset, folder="../CommonData/", calc_df=None, ignore_Watercut=False):
     global pump_curves
     if pump_curves is None:
         pump_curves = pd.read_csv(folder + "PumpChart.csv")

@@ -76,7 +76,9 @@ def app():
     Q = Q["X_kg_sec"] * 86400 / Q["res_liquid_density_kg_m3"]
     st.write(f"Расчетный дебит - {Q:.1f} м^3")
     pressure = mdf["startP"][1:]
-    st.write(pressure)
+    df_pressure = pd.DataFrame(mdf["startP"][1:])
+    df_pressure["Давление"] = pd.Series(["0", "Забойное", "На приеме", "На выкиде", "Устьевое"])
+    st.write(df_pressure)
 
     fig = go.Figure(
         data=[go.Scatter(x=[perforation, pump_depth, pump_depth - 100, 0], y=pressure)],
