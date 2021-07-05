@@ -6,6 +6,7 @@
 - streamlit=0.83.0
 - upstreampy=...
 
+
 ## Запуск
 ```bash
 streamlit run app.py
