@@ -1,7 +1,3 @@
-import sys
-
-# sys.path.append('upstream/pumpselection/')
-
 import streamlit as st
 import pandas as pd
 import numpy as np
@@ -22,13 +18,15 @@ def app():
     pump_chart = pd.read_parquet(pump_path, engine='pyarrow')
     inclination = pd.read_parquet(inclination_path, engine='pyarrow')
     nkt = pd.read_parquet(nkt_path, engine='pyarrow')
+    pump_chart["NominalQ"] = pump_chart["pumpModel"].apply(lambda x: float(x.split('-')[1]))
 
     well_list = inclination.sort_values("wellNum")["wellNum"].unique()
-    start_well_idx = int(np.where(well_list == '4100')[0][0])
+    start_well_idx = int(np.where(well_list == '1817')[0][0])
 
+    # TODO Перенести свойства жидкости на сайдбар
     with st.beta_expander("Свойства жидкости"):
         with st.form("Свойства жидкости"):
-            cols = st.beta_columns(8)
+            cols = st.beta_columns(9)
             base_properties = [('OilSaturationP', dataset['OilSaturationP'].iloc[0], "Давление насыщения"),
                               ('PlastT', dataset['PlastT'].iloc[0], "Пластовая температура"),
                               ('GasFactor', dataset['GasFactor'].iloc[0], "Газовый фактор"),
@@ -42,7 +40,7 @@ def app():
             for i, col in enumerate(cols):
                 prop = base_properties[i]
                 property_dict.update({prop[0]: col.text_input(f"{prop[2]}", prop[1])})
-            submitted = st.form_submit_button("ОБновить")
+            submitted = st.form_submit_button("Обновить")
             if submitted:
                 for key in list(property_dict.keys()):
                     dataset[key] = float(property_dict[key])
@@ -109,6 +107,7 @@ def app():
             float).round(2)
     df_result = df_result[["wellNum", "pumpModel", "Depth", "debit", "pressure", "Hdyn", "InputP", "eff", "power",
                            "Separator", "intensity 0.2", "intensity 0.3"]]
+    df_result = df_result.drop_duplicates(subset = ['pumpModel', 'Depth'])
     df_result = df_result.rename(columns={'wellNum': "Скважина", 'pumpModel': "Модель насоса",
                                           'debit': "Дебит, м3/сут", 'pressure': "Напор, м.",
                                           'InputP': "Давл на приеме, атм.",
