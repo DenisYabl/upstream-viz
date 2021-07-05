@@ -1,7 +1,3 @@
-import sys
-
-#sys.path.append('upstream/pumpselection/')
-
 import streamlit as st
 import pandas as pd
 import numpy as np
@@ -27,6 +23,7 @@ def app():
     well_list = inclination.sort_values("wellNum")["wellNum"].unique()
     start_well_idx = int(np.where(well_list == '1817')[0][0])
 
+    # TODO Перенести свойства жидкости на сайдбар
     with st.beta_expander("Свойства жидкости"):
         with st.form("Свойства жидкости"):
             cols = st.beta_columns(9)
