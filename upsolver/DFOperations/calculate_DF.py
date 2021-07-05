@@ -5,9 +5,9 @@ from upsolver.Tools.HE2_Logger import getLogger
 logger = getLogger(__name__)
 
 
-def calculate_DF(dataframe):
+def calculate_DF(dataframe, folder="../CommonData/"):  # FIXME Set folder in config
     G, calc_df, df_to_graph_edges_mapping = make_oilpipe_schema_from_OT_dataset(
-        dataframe, folder="/home/nryabykh/dev/github/isgneuro/upstream-viz/data/")  # FIXME Set folder in config
+        dataframe, folder=folder)
     solver = HE2_Solver(G)
     solver.solve(threshold=0.5)
     modified_dataframe = dataframe.copy()

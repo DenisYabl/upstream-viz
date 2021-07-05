@@ -8,7 +8,7 @@ from upsolver.DFOperations.calculate_DF import calculate_DF
 def app():
     st.header("What-If анализ скважины")
     st.info("Work In Progress...")
-    well_num = st.text_input("Введите номер скважины")
+    well_num = st.text_input("Введите номер скважины", "22")
 
     pump_curves = pd.read_csv("./data/PumpChart.csv").set_index("pumpModel")
     pump_model_list = list(set(pump_curves.index))
@@ -52,7 +52,7 @@ def app():
     st.write(df)
     pump_curve = pump_curves.loc[dataset["model"]].sort_values(by="debit")
     st.write(pump_curve)
-    mdf = calculate_DF(df)
+    mdf = calculate_DF(df, folder="/home/nryabykh/dev/github/isgneuro/upstream-viz/data/")
     Q = mdf.iloc[-1]
     st.write(Q)
     Q = Q["X_kg_sec"] * 86400 / Q["res_liquid_density_kg_m3"]
@@ -73,31 +73,31 @@ def app():
     fig.add_vline(x=Q, line_width=3, line_dash="dash", line_color="green")
     st.write(fig)
 
-    st.write("Моделирование периодического режима")
-    well_973 = pd.read_csv("~/well_973.csv", parse_dates=["index"])
-
-    def calc_q(dataset):
-        mdf = calculate_DF(dataset)
-        Q = mdf.iloc[-1]
-        Q = Q["X_kg_sec"] * 86400 / Q["res_liquid_density_kg_m3"]
-        return Q
-
-    Q_list = []
-    if st.button("Запустить периодический режим"):
-        for _, state in well_973.iterrows():
-            temp_dataset = dataset.copy()
-
-            if state["status"] == 1.0:
-                q = calc_q(dataset)
-            else:
-                temp_dataset["frequency"] = 1.0
-                q = calc_q(temp_dataset)
-                if q < 0:
-                    q = 0
-            Q_list.append(q)
-        well_973["Q"] = Q_list
-        st.write(well_973)
-        fig = go.Figure()
-        fig.add_trace(go.Scatter(x=well_973["index"], y=well_973["status"], line_shape="hv"))
-        fig.add_trace(go.Scatter(x=well_973["index"], y=well_973["Q"], line_shape="hv"))
-        st.write(fig)
+    # st.write("Моделирование периодического режима")
+    # well_973 = pd.read_csv("~/well_973.csv", parse_dates=["index"])
+    #
+    # def calc_q(dataset):
+    #     mdf = calculate_DF(dataset)
+    #     Q = mdf.iloc[-1]
+    #     Q = Q["X_kg_sec"] * 86400 / Q["res_liquid_density_kg_m3"]
+    #     return Q
+    #
+    # Q_list = []
+    # if st.button("Запустить периодический режим"):
+    #     for _, state in well_973.iterrows():
+    #         temp_dataset = dataset.copy()
+    #
+    #         if state["status"] == 1.0:
+    #             q = calc_q(dataset)
+    #         else:
+    #             temp_dataset["frequency"] = 1.0
+    #             q = calc_q(temp_dataset)
+    #             if q < 0:
+    #                 q = 0
+    #         Q_list.append(q)
+    #     well_973["Q"] = Q_list
+    #     st.write(well_973)
+    #     fig = go.Figure()
+    #     fig.add_trace(go.Scatter(x=well_973["index"], y=well_973["status"], line_shape="hv"))
+    #     fig.add_trace(go.Scatter(x=well_973["index"], y=well_973["Q"], line_shape="hv"))
+    #     st.write(fig)
