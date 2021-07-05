@@ -3,26 +3,39 @@ import pandas as pd
 import numpy as np
 import plotly.graph_objects as go
 from upsolver.DFOperations.calculate_DF import calculate_DF
+import altair as alt
 
 
 def app():
     st.header("What-If анализ скважины")
-    st.info("Work In Progress...")
     well_num = st.text_input("Введите номер скважины", "22")
 
     pump_curves = pd.read_csv("./data/PumpChart.csv").set_index("pumpModel")
     pump_model_list = list(set(pump_curves.index))
+    df_well_params = pd.read_csv("./data/well_params_for_whatif.csv")
+    params_dict = df_well_params[df_well_params["__well_num"] == well_num]\
+        .sort_values("day_str", ascending=False)\
+        .head(1)\
+        .reset_index()\
+        .T.to_dict().get(0)
 
     with st.sidebar:
         with st.form("Параметры скважины"):
-            p_plast = st.number_input("Пластовое давление", min_value=0, max_value=350, value=240)
-            p_head = st.number_input("Устьевое давление", min_value=0, max_value=50, value=11)
-            productivity = st.slider("Коэффициент продуктивности", min_value=0.1, max_value=3.0, value=0.8)
-            perforation = st.number_input("Глубина перфорации", min_value=2000, max_value=4000, value=3759)
-            pump_depth = st.number_input("Глубина спуска насоса", min_value=1500, max_value=3500, value=2100)
+            p_plast = st.number_input("Пластовое давление", min_value=0, max_value=350,
+                                      value=int(params_dict["p_plast"]))
+            p_head = st.number_input("Устьевое давление", min_value=0, max_value=50,
+                                     value=int(params_dict["p_head"]))
+            productivity = st.slider("Коэффициент продуктивности", min_value=0.1, max_value=3.0,
+                                     value=round(float(params_dict["k_prod"]), 2))
+            perforation = st.number_input("Глубина перфорации", min_value=2000, max_value=4000,
+                                          value=int(params_dict["perf_depth"]))
+            pump_depth = st.number_input("Глубина спуска насоса", min_value=1500, max_value=3500,
+                                         value=int(params_dict["pump_depth"]))
             k_pump = st.slider("Коэффициент заполнения насоса", min_value=0.0, max_value=1.0, value=0.7)
-            pump_model = st.selectbox("Модель насоса", pump_model_list)
-            frequency = st.slider("Частота вращения насоса", min_value=0, max_value=70, value=50)
+            pump_model = st.selectbox("Модель насоса", pump_model_list,
+                                      index=pump_model_list.index(params_dict["pump_model"]))
+            frequency = st.slider("Частота вращения насоса", min_value=0.0, max_value=70.0,
+                                  value=float(params_dict["freq"]))
 
             with st.beta_expander("Параметры жидкости"):
                 p_saturation = st.number_input("Давление насыщения", min_value=0, max_value=100, value=63)
@@ -49,14 +62,19 @@ def app():
                "oilviscosity_Pa_s": oil_viscosity_pa_s, "volumeoilcoeff": float(volume_oil_coeff)}
 
     df = pd.DataFrame(dataset, index=[0])
-    st.write(df)
     pump_curve = pump_curves.loc[dataset["model"]].sort_values(by="debit")
-    st.write(pump_curve)
+    st.subheader("НРХ")
+    col1, col2 = st.beta_columns(2)
+    with col1:
+        st.line_chart(pump_curve.set_index("debit")["pressure"])
+    with col2:
+        st.line_chart(pump_curve.set_index("debit")["eff"])
+
     mdf = calculate_DF(df, folder="/home/nryabykh/dev/github/isgneuro/upstream-viz/data/")
     Q = mdf.iloc[-1]
-    st.write(Q)
+    st.write(Q.to_dict())
     Q = Q["X_kg_sec"] * 86400 / Q["res_liquid_density_kg_m3"]
-    st.write(f"Текущий дебит - {Q} м^3/сутки")
+    st.write(f"Расчетный дебит - {Q:.1f} м^3")
     pressure = mdf["startP"][1:]
     st.write(pressure)
 
