@@ -14,6 +14,31 @@ def get_criteria_description(conf, crit_name):
     return conf["description"].get(crit_name, "Для выбранного критерия отсутвует описание")
 
 
+kes_desc = """
+Для скважины должны выполняться следующие условия:
+
+- скважина работает в постоянном режиме;
+
+- номинальная производильность ЭЦН не более 125;
+
+- высота столба жидкости над ЭЦН менее 400м;
+
+- дебит жидкости составляет менее 60% от номинала ЭЦН."
+"""
+
+criteria_dict = {
+    "Корректировка периодического режима": "crit_adjust_kes",
+    "Перевод в КЭС": "crit_kes",
+    "Приведение в соответствие (правая зона)": "crit_right",
+    "Приподъем": "crit_up",
+    "Смена ЭЦН по притоку": "crit_pritok",
+    "Смена ЭЦН по технологии": "crit_technology",
+    "Смена в постоянный режим": "crit_const",
+    "Штуцирование": "crit_shtuz",
+    "Все": "one"
+}
+
+
 @st.cache
 def get_data(query, conf) -> pd.DataFrame:
     conf_rest = {k: v for k, v in conf["rest"].items() if k in ["host", "port", "user", "password"]}
@@ -22,6 +47,7 @@ def get_data(query, conf) -> pd.DataFrame:
     return pd.DataFrame(ds)
 
 
+# TODO. Сделать стайлер, как в виртуальном расходомере
 def df_styler(df):
     cols = ["day", "__deposit", "__pad_num", "__well_num", "pumpModel", "AverageLiquidDebit", "AverageOilDebit",
             "VolumeWater", "pumpDepth", "Hdynamic", "PumpInputP", "LinearP", "Pbuffer", "Pzatrub", "PumpFreq",
@@ -67,25 +93,14 @@ def df_styler(df):
 
 
 def app():
-    criteria_dict = {
-        "Корректировка периодического режима": "crit_adjust_kes",
-        "Перевод в КЭС": "crit_kes",
-        "Приведение в соответствие (правая зона)": "crit_right",
-        "Приподъем": "crit_up",
-        "Смена ЭЦН по притоку": "crit_pritok",
-        "Смена ЭЦН по технологии": "crit_technology",
-        "Смена в постоянный режим": "crit_const",
-        "Штуцирование": "crit_shtuz",
-        "Все": "one"}
-
     conf = get_conf("config.yaml")
     col1, col2 = st.beta_columns(2)
     with col1:
         date = st.date_input("Дата", datetime.date(2021, 5, 20))
     with col2:
-        crit = st.selectbox("Критерий", list(criteria_dict.keys()))
+        crit = st.selectbox("Предлагаемое действие", list(criteria_dict.keys()))
 
-    with st.beta_expander("Описание критерия"):
+    with st.beta_expander(f"""Какие критерии должны быть выполнены для действия "{crit}"?"""):
         info_text = get_criteria_description(conf, criteria_dict[crit])
         st.markdown(info_text)
 
