@@ -81,6 +81,7 @@ def app():
     AgGrid(df, editable=True)
     COLUMNS = st.multiselect("Выберите параметры", list(df.columns), ["_time"])
     st.write(COLUMNS)
+    date_range = st.date_input("Выберите интервал времени", [])
     source = df[COLUMNS].melt(id_vars=["_time"]).dropna()
     st.write(source)
     st.write(len(source))

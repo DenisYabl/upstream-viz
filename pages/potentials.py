@@ -4,11 +4,10 @@ import altair as alt
 import numpy as np
 import streamlit as st
 import streamlit.components.v1 as components
+import yaml
 
 from st_aggrid import GridOptionsBuilder, AgGrid, DataReturnMode, GridUpdateMode
-
 from upstream.potentials.InFlowCorrelation import Vogel_megion_K_prod
-
 from upstream.potentials.Optimization_1_well import optimize_freq, optimize_freq_df
 from ot_simple_connector.connector import Connector
 
@@ -23,11 +22,25 @@ QUERY_POTENTIALS = """
 """
 
 
+def get_conf(file_path="config.yaml"):
+    with open(file_path, "r") as f:
+        return yaml.safe_load(f)
+
+
+def get_rest_connector(file_path="config.yaml"):
+    conf = get_conf(file_path)
+    conf_rest = {k: v for k, v in conf["rest"].items() if k in ["host", "port", "user", "password"]}
+    return Connector(**conf_rest)
+
+
+def get_data_folder(file_path="config.yaml"):
+    conf = get_conf(file_path)
+    return conf["data"]["path"]
+
+
 @st.cache(allow_output_mutation=True)
 def get_data(query):
-    conn = Connector(host="192.168.4.65", port="80", user="admin", password="12345678")
-    result = conn.session.authorized
-    print("Ot_simple_connector is authenticated")
+    conn = get_rest_connector()
     job = conn.jobs.create(query_text=query, cache_ttl=10, tws=0, twf=0, blocking=True)
     result = job.dataset.load()
     df = pd.DataFrame(result)
@@ -82,7 +95,7 @@ def get_optimization(df):
 
 
 def app():
-    st.title("Cкважины с потенциалом тех. предел")
+    st.title("Cкважины с потенциалом")
     df = get_data(QUERY_POTENTIALS)
     style_df = df_styler(df)
     gb = GridOptionsBuilder.from_dataframe(style_df)
@@ -91,7 +104,7 @@ def app():
     returned = AgGrid(style_df, gridOptions=gridOptions)
     if st.button("Запустить оптимизацию"):
         temp_df = df.copy()
-        a = optimize_freq_df(temp_df)
+        a = optimize_freq_df(temp_df, get_data_folder())
         temp_df = df_styler(temp_df)
         temp_df[
             ["Оптимальный дебит", "Оптимальное забойное", "Оптимальная частота"]

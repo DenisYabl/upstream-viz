@@ -4,6 +4,9 @@ rest:
   user: admin
   password: "12345678"
 
+data:
+  path: "./data/"
+
 description:
   crit_adjust_kes: >
     TODO
