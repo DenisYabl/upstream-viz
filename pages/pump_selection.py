@@ -1,19 +1,20 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
-# import plotly.graph_objects as go
+import config
+from os import path
 from upstream.pumpselection.hydraulics.oil_params import oil_params
 from upstream.pumpselection.PumpSelection.Lyapkov.PumpSelectionAuto import PumpSelectionAuto
 
 
 def app():
-    # st.set_page_config(layout="wide")
+    data_folder = config.get_data_folder()
     st.header("Подбор УЭЦН")
-    dataset = pd.read_csv("./data/input_dataset.csv")
+    dataset = pd.read_csv(path.join(data_folder, "input_dataset.csv"))  # TODO input_dataset.csv <- from platform
 
-    pump_path = "data/pump_curve"
-    inclination_path = "data/inclination"
-    nkt_path = "data/HKT"
+    pump_path = path.join(data_folder, "pump_curve")
+    inclination_path = path.join(data_folder, "inclination")
+    nkt_path = path.join(data_folder, "HKT")
 
     pump_chart = pd.read_parquet(pump_path, engine='pyarrow')
     inclination = pd.read_parquet(inclination_path, engine='pyarrow')

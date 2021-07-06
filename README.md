@@ -16,7 +16,9 @@ streamlit run app.py
 
 - Создать в папке `pages` файл с описанием страницы.
 - Добавить в app.py нужный импорт и строку с добавлением страницы. Пример:
+
 ```python
-from pages import tubing
-app.add_page("Подбор НКТ", tubing.app)
+from pages import tubing_selection
+
+app.add_page("Подбор НКТ", tubing_selection.app)
 ```

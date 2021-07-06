@@ -1,18 +1,21 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
+import config
+from os import path
 import plotly.graph_objects as go
 from upsolver.DFOperations.calculate_DF import calculate_DF
 import altair as alt
 
 
 def app():
+    data_folder = config.get_data_folder()
     st.header("What-If анализ скважины")
     well_num = st.text_input("Введите номер скважины", "22")
 
-    pump_curves = pd.read_csv("./data/PumpChart.csv").set_index("pumpModel")
+    pump_curves = pd.read_csv(path.join(data_folder, "PumpChart.csv")).set_index("pumpModel")
     pump_model_list = list(set(pump_curves.index))
-    df_well_params = pd.read_csv("./data/well_params_for_whatif.csv")
+    df_well_params = pd.read_csv(path.join(data_folder, "well_params_for_whatif.csv"))
     params_dict = df_well_params[df_well_params["__well_num"] == well_num]\
         .sort_values("day_str", ascending=False)\
         .head(1)\
@@ -70,7 +73,7 @@ def app():
     with col2:
         st.line_chart(pump_curve.set_index("debit")["eff"])
 
-    mdf = calculate_DF(df, folder="/home/nryabykh/dev/github/isgneuro/upstream-viz/data/")
+    mdf = calculate_DF(df, folder=data_folder)
     Q = mdf.iloc[-1]
     st.write(Q.to_dict())
     Q = Q["X_kg_sec"] * 86400 / Q["res_liquid_density_kg_m3"]

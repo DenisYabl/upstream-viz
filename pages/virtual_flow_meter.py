@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 import yaml
 from datetime import date
-from ot_simple_connector.connector import Connector
+import config
 
 gzu_cols_format = {
     "day_str": ("Дата", None),
@@ -36,22 +36,16 @@ q_detail_cols = {
     "low_rate": ("Доля сниж.", "{:.2f}")
 }
 
+
 def styler(df: pd.DataFrame, style_dict: dict):
     rename_cols = {k: v[0] for k, v in style_dict.items()}
     format_cols = {v[0]: v[1] for _, v in style_dict.items() if v[1]}
     return df.rename(rename_cols, axis=1).style.format(format_cols)
 
 
-def read_config(file_path):
-    with open(file_path, "r") as f:
-        return yaml.safe_load(f)
-
-
 @st.cache
 def get_data(query):
-    conf_rest = {k: v for k, v in read_config("config.yaml")["rest"].items()
-                 if k in ["host", "port", "user", "password"]}
-    conn = Connector(**conf_rest)
+    conn = config.get_rest_connector()
     return pd.DataFrame(conn.jobs.create(query, cache_ttl=60, tws=0, twf=0).dataset.load())
 
 

@@ -1,5 +1,6 @@
 import networkx as nx
 import pandas as pd
+from os import path
 from upsolver.GraphEdges.HE2_Pipe import HE2_WaterPipe, HE2_OilPipe
 from upsolver.GraphEdges.HE2_Plast import HE2_Plast
 from upsolver.GraphEdges.HE2_WellPump import HE2_WellPump, create_HE2_WellPump_instance_from_dataframe
@@ -14,10 +15,10 @@ inclination = None
 HKT = None
 
 
-def make_oilpipe_schema_from_OT_dataset(dataset, folder="../CommonData/", calc_df=None, ignore_Watercut=False):
+def make_oilpipe_schema_from_OT_dataset(dataset, folder, calc_df=None, ignore_Watercut=False):
     global pump_curves
     if pump_curves is None:
-        pump_curves = pd.read_csv(folder + "PumpChart.csv")
+        pump_curves = pd.read_csv(path.join(folder, "PumpChart.csv"))
 
     dataset_cols = set(dataset.columns)
     well_cols = ['perforation', 'frequency', 'wellNum', 'padNum', 'pumpDepth', 'productivity', 'model']
@@ -101,9 +102,9 @@ def make_oilpipe_schema_from_OT_dataset(dataset, folder="../CommonData/", calc_d
 def make_calc_df(dataset, folder):
     global inclination, HKT
     if inclination is None:
-        inclination = pd.read_parquet(folder + "inclination", engine="pyarrow")
+        inclination = pd.read_parquet(path.join(folder, "inclination"), engine="pyarrow")
     if HKT is None:
-        HKT = pd.read_parquet(folder + "HKT", engine="pyarrow")
+        HKT = pd.read_parquet(path.join(folder, "HKT"), engine="pyarrow")
     wells_df = dataset[dataset["juncType"] == 'oilwell']
     dataset = dataset[dataset["juncType"] != 'oilwell']
     dataset[['node_id_start', 'node_id_end']] = dataset[['node_id_start', 'node_id_end']].astype(int).astype(str)

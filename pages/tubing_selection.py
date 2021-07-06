@@ -1,5 +1,9 @@
 import streamlit as st
 import pandas as pd
+from typing import List
+
+import config
+from os import path
 from upstream.nkt.nkt_part import NKTPartDict
 from upstream.nkt.solver import Solver
 
@@ -31,7 +35,7 @@ def read_cable(cable_path: str) -> pd.DataFrame:
     return cable_df.set_index("cable")
 
 
-def calculate_extra_fields(res_dict: dict):
+def calculate_extra_fields(res_dict: List[dict]):
     # наименее прочная ступень, на нее приходится какая-то нагрузка (из поля load)
     weakest_max_load = min([part["max_load"] for part in res_dict])
     # текущая нагрузка на наименее прочную ступень
@@ -71,10 +75,11 @@ def df_styler(df: pd.DataFrame):
 
 
 def app():
-    nkt_dict_path = "./data/tubings.csv"
-    pumps_path = "./data/pumps_weights.csv"
-    ped_path = "./data/PED_weights.csv"
-    cable_path = "./data/cable_weights.csv"
+    data_folder = config.get_data_folder()
+    nkt_dict_path = path.join(data_folder, "tubings.csv")
+    pumps_path = path.join(data_folder, "pumps_weights.csv")
+    ped_path = path.join(data_folder, "PED_weights.csv")
+    cable_path = path.join(data_folder, "cable_weights.csv")
 
     nkt_part_dict = read_nkt_dict(nkt_dict_path)
     pump_df = read_pumps(pumps_path)

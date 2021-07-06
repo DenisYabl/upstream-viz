@@ -1,13 +1,9 @@
 import streamlit as st
 import pandas as pd
-import yaml
+import os
 import datetime
 from ot_simple_connector.connector import Connector
-
-
-def get_conf(file_path):
-    with open(file_path, "r") as f:
-        return yaml.safe_load(f)
+import config
 
 
 def get_criteria_description(conf, crit_name):
@@ -93,7 +89,7 @@ def df_styler(df):
 
 
 def app():
-    conf = get_conf("config.yaml")
+    conf = config.get_conf("config.yaml")
     col1, col2 = st.beta_columns(2)
     with col1:
         date = st.date_input("Дата", datetime.date(2021, 5, 20))
