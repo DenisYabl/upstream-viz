@@ -1,6 +1,6 @@
+import altair as alt
 import streamlit as st
 import pandas as pd
-import yaml
 from datetime import date
 import config
 
@@ -46,13 +46,16 @@ def styler(df: pd.DataFrame, style_dict: dict):
 @st.cache
 def get_data(query):
     conn = config.get_rest_connector()
-    return pd.DataFrame(conn.jobs.create(query, cache_ttl=60, tws=0, twf=0).dataset.load())
+    df = pd.DataFrame(conn.jobs.create(query, cache_ttl=60, tws=0, twf=0).dataset.load())
+    df["dt"] = pd.to_datetime(df["_time"], unit="s")
+    return df
 
 
 def app():
     st.header("Виртуальный расходомер")
     selected_date = st.date_input("Выберите дату", value=date(2021, 6, 9))
-    query = f"""| readFile format=parquet path=upstream/vfm
+    get_data_conf = config.get_conf("get_data.yaml")
+    query = f"""| {get_data_conf["virtual_flow_meter"]["vfm"]}
         | sort _time
         | streamstats time_window=1w sum(Q_is_low) as low_Qs, count as total by __well_num
         | eval low_rate = low_Qs / total
@@ -63,6 +66,7 @@ def app():
         | eval is_gzu_problem = if(anomaly_wells_in_pad>2 AND Q_is_anomaly=1, 1, 0)
         | search is_gzu_problem=1 OR is_q_decrease=1
     """
+
     with st.spinner("Загрузка данных..."):
         df = get_data(query)
 
@@ -101,12 +105,12 @@ def app():
                         "замеров дебит был меньше режимного и величина отклонения превышала допустимую. "
                         "Допустимые величины отклонений задаются в справочнике и зависят от номинала ЭЦН и "
                         "обводненности скважины")
-            df_low = df[df["is_q_decrease"] == 1]\
-                .groupby("__pad_num")\
+            df_low = df[df["is_q_decrease"] == 1] \
+                .groupby("__pad_num") \
                 .agg(
-                    {"day_str": "max",
-                     "__well_num": "unique"}
-                )
+                {"day_str": "max",
+                 "__well_num": "unique"}
+            )
             df_low["anomaly_wells_in_pad"] = df_low["__well_num"].apply(len)
             limit = st.radio("", ["Топ-5 кустов", "Все кусты"])
             low_cols = ["day_str", "__pad_num", "anomaly_wells_in_pad", "__well_num"]
@@ -129,10 +133,71 @@ def app():
             )
 
     st.subheader("Параметры работы скважины")
-    col1, col2 = st.beta_columns(2)
-    with col1:
-        st.text_input("Введите номер скважины")
-    with col2:
-        params = ["Дебит", "Режимный дебит", "Прогнозируемый дебит", "Пластовое давление", "Забойное давление",
-                  "Давление на приеме ЭЦН", "Устьевое давление", "Частота ЭЦН", "Загрузка"]
-        st.multiselect("Выберите параметры", params, ["Дебит"])
+    with st.form("Параметры работы скважины"):
+        col1, col2, col3 = st.beta_columns(3)
+        with col1:
+            selected_well = st.text_input("Введите номер скважины")
+        with col2:
+            params = {
+                "Состояние ЭЦН": "adkuWellStatus",
+                "Суточный дебит, м3/сут": "adkuWellLiquidDebit",
+                "Режимный дебит, м3/сут": "oilWellopAverageLiquidDebit",
+                "Обводненность": "oilWellopVolumeWater",
+                "Давление затрубное": "adkuWellZatrubP",
+                "Давление на приеме ЭЦН": "adkuWellInputP",
+                "Температура на приеме ЭЦН": "",  # Пусто
+                "Дисбаланс напряжения": "adkuControlStationVoltageDisbalance",
+                "Ток фазы A": "adkuControlStationCurrentA",
+                "Ток фазы B": "adkuControlStationCurrentB",
+                "Ток фазы C": "adkuControlStationCurrentC",
+                "Напряжение BA": "adkuControlStationVoltageBA",
+                "Напряжение AC": "adkuControlStationVoltageAC",
+                "Напряжение CB": "adkuControlStationVoltageCB",
+                "Частота ЭЦН": "adkuControlStationEngineFreq",
+                "Дисбаланс токов": "adkuControlStationCurrentDisbalance",
+                "Сопротивление изоляции": "adkuControlStationResistance",
+                "Коэффициент мощности": "adkuControlStationPowerCoeff",
+                "Загрузка": "adkuControlStationLoading",
+                "Давление в коллекторе ГЗУ": "adkuWellLinearP"
+            }
+            selected_params = st.multiselect("Выберите параметры", list(params.keys()), [])
+        with col3:
+            height = st.number_input("Высота графиков", min_value=10, max_value=500, value=150)
+        st.form_submit_button("Показать данные")
+
+    cols = [params[par] for par in selected_params]
+    params_query = f"""
+        | {get_data_conf["virtual_flow_meter"]["well_params"]} 
+        | search __well_num="{selected_well}"
+    """
+    if bool(selected_well) & bool(selected_params):
+        df = get_data(params_query).set_index("dt").sort_index()[cols].dropna(how="all")
+        charts = []
+        resize = alt.selection_interval(bind='scales')
+        for col, col_rus in zip(cols, selected_params):
+            idf = df[col].dropna().rename(col_rus).reset_index()
+            chart = alt.Chart(idf).mark_line(interpolate="cardinal").encode(
+                x=alt.X("dt:T", axis=alt.Axis(title="")),
+                y=f"{col_rus}:Q"
+            ).properties(
+                height=height,
+                width=1000
+            ).transform_sample(1000).add_selection(resize)
+            text = alt.Chart(idf)\
+                .mark_text(
+                    baseline="top",
+                    dy=5,
+                    fontWeight="normal")\
+                .encode(
+                    x=alt.X("dt:T", axis=alt.Axis(title="")),
+                    y=f"{col_rus}:Q",
+                    text=f"{col_rus}:Q"
+                ).transform_sample(10)
+            charts.append(chart + text)
+        st.write(
+            alt.vconcat(*charts)
+                .configure_axis(gridOpacity=0.5, titlePadding=15, titleFontWeight="normal", titleFontSize=9)
+                .configure_view(strokeWidth=0)
+        )
+    else:
+        st.info("Введите номер скважины и выберите хотя бы один параметр")

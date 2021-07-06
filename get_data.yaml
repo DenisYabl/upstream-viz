@@ -1,0 +1,3 @@
+virtual_flow_meter:
+  well_params: "readFile format=parquet path=upstream/well_omds_sample2"
+  vfm: "readFile format=parquet path=upstream/vfm"

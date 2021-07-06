@@ -8,16 +8,15 @@ import streamlit.components.v1 as components
 from st_aggrid import GridOptionsBuilder, AgGrid, DataReturnMode
 from altair import datum
 
-
 from upstream.potentials.InFlowCorrelation import Vogel_megion_K_prod
 from ot_simple_connector.connector import Connector
-
 
 start_time = time.time()
 
 QUERY_POTENTIALS = """
 | readFile format=parquet path=ermilov/omds/potential_rate 
 """
+
 
 @st.cache()
 def get_data():
@@ -35,42 +34,41 @@ def create_multiline_graphic(source, one_line_one_row=True, annotations=False, b
     annotatins: добавить аннотации на график
     beetwen_annotation:  Растояние между аннотацииями, TODO: для каждой метрики свое расстояние
     """
-    
-    source = source.assign(if_visible= source.index%beetwen_annotation==0)
+
+    source = source.assign(if_visible=source.index % beetwen_annotation == 0)
     st.write(source)
     zoom = alt.selection(type="interval", encodings=["x"])
     # Создаем базовый слой
     base = (
         alt.Chart(source)
-        .mark_line(point=True)
-        .encode(x="_time", y="value", color="variable"))
- 
+            .mark_line(point=True)
+            .encode(x="_time", y="value", color="variable"))
 
     upper = base.properties(width=1200)
-    
+
     annotation = (
         alt.Chart(source)
-        .mark_text(
+            .mark_text(
             align="center",
             baseline="top",
             dx=0
         )
-        .encode(x="_time", y="value", text="value")
-        .transform_filter(datum.if_visible == 1)
+            .encode(x="_time", y="value", text="value")
+            .transform_filter(datum.if_visible == 1)
     )
     if one_line_one_row:
-         upper = (upper+annotation)
+        upper = (upper + annotation)
     else:
-         upper = upper
+        upper = upper
     upper = upper.encode(alt.X("_time", scale=alt.Scale(domain=zoom)))
-    
+
     if annotations:
         upper = upper.facet(row="variable")
-    else: 
-        upper = upper    
-    upper = upper.resolve_scale(y='independent')  
+    else:
+        upper = upper
+    upper = upper.resolve_scale(y='independent')
     lower = base.properties(height=60, width=1200).add_selection(zoom)
-    
+
     return (upper & lower)
 
 
@@ -95,4 +93,3 @@ def app():
     st.altair_chart(rez)
     rez = create_multiline_graphic(source, True, True)
     st.altair_chart(rez)
-
