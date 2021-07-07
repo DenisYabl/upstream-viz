@@ -13,19 +13,20 @@ st.set_page_config(
 app = MultiPage()
 
 # Title of the main page
-st.title("ИПР ЦУД. Мехподъем")
+st.title("Центр Управления Добычей")
 
 # Add all your applications (pages) here
-app.add_page("Стартовая страница", start.app)
-app.add_page("Анализ фонда", analysis.app)
-app.add_page("Виртуальный расходомер", virtual_flow_meter.app)
-app.add_page("Срывы подачи", pump_starvation.app)
-app.add_page("What-If анализ скважины", well_what_if.app)
-app.add_page("Анализ и достижимость потенциалов", potentials.app)
-app.add_page("Подбор НКТ", tubing_selection.app)
-app.add_page("Подбор УЭЦН", pump_selection.app)
-app.add_page("Пример графиков", well_graphics.app)
-
+app.add_page("Мехподъем", "Стартовая страница", start.app)
+app.add_page("Мехподъем", "Анализ фонда", analysis.app)
+app.add_page("Мехподъем", "Виртуальный расходомер", virtual_flow_meter.app)
+app.add_page("Мехподъем", "Срывы подачи", pump_starvation.app)
+app.add_page("Мехподъем", "What-If анализ скважины", well_what_if.app)
+app.add_page("Мехподъем", "Анализ и достижимость потенциалов", potentials.app)
+app.add_page("Мехподъем", "Подбор НКТ", tubing_selection.app)
+app.add_page("Мехподъем", "Подбор УЭЦН", pump_selection.app)
+app.add_page("Мехподъем", "Пример графиков", well_graphics.app)
+app.add_page("Трубопровод", "Стартовая страница", start.app)
+app.add_page("Трубопровод", "Расчет сети", well_graphics.app)
 
 # The main app
 app.run()
