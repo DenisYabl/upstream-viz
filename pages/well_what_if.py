@@ -1,11 +1,39 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
+from altair import datum
+
 import config
 from os import path
 import plotly.graph_objects as go
 from upsolver.DFOperations.calculate_DF import calculate_DF
 import altair as alt
+
+
+def show_pump_curves(pump_curve):
+    st.subheader("НРХ")
+    base = alt.Chart(pump_curve).encode(
+        alt.X('debit:Q', axis=alt.Axis(title="Дебит, м3/сут"))
+    )
+
+    pressure = base.mark_line(color='#57A44C').encode(
+        alt.Y("pressure", axis=alt.Axis(title="Напор, м.", titleColor='#57A44C'))
+    )
+
+    eff = base.mark_line().encode(
+        alt.Y("eff", axis=alt.Axis(title='КПД, %', titleColor='#5276A7'))
+    )
+
+    st.write(
+        alt.layer(pressure, eff)
+        .resolve_scale(y='independent')
+        .configure_axis(gridOpacity=0.5, titlePadding=15, titleFontWeight="normal", titleFontSize=10)
+        .configure_view(strokeWidth=0)
+        .properties(
+            height=250,
+            width=600
+        )
+    )
 
 
 def app():
@@ -53,7 +81,9 @@ def app():
                 oil_viscosity_pa_s = st.slider("Вязкость сепарированной нефти", min_value=0.0, max_value=100e-3,
                                                        value=35e-3)
                 volume_oil_coeff = st.text_input("Объемный коэффициент нефти", "1.015")
+
             st.form_submit_button("Рассчитать скважину")
+        st.button("Сбросить к исходным")
 
     dataset = {"wellNum": well_num, "juncType": "oilwell", "node_id_end": {0: 3}, "node_id_start": {0: 24}, "startIsSource": {0: True},
                "VolumeWater": {0: 50}, "startKind": {0: "P"}, "endIsOutlet": {0: True}, "endKind": {0: "P"},
@@ -65,36 +95,29 @@ def app():
                "oilviscosity_Pa_s": oil_viscosity_pa_s, "volumeoilcoeff": float(volume_oil_coeff)}
 
     df = pd.DataFrame(dataset, index=[0])
-    pump_curve = pump_curves.loc[dataset["model"]].sort_values(by="debit")
-    st.subheader("НРХ")
+
     col1, col2 = st.beta_columns(2)
     with col1:
-        st.line_chart(pump_curve.set_index("debit")["pressure"])
+        st.subheader("Расчетные параметры")
+        # Calculate well params
+        mdf = calculate_DF(df, folder=data_folder)
+        # st.write(mdf)
+        Q = mdf.iloc[-1]
+        Q = Q["X_kg_sec"] * 86400 / Q["res_liquid_density_kg_m3"]
+        init_params = [round(params_dict.get(k, -1)) for k in
+                       ["debit", "p_plast", "p_zaboy", "p_input", "p_output", "p_head"]]
+        calculated_params = [round(Q)] + [round(p) for p in mdf["startP"].values]
+        result_dict = {
+            "Параметр": ["Дебит", "Пластовое", "Забойное", "На приеме", "На выкиде", "Устьевое"],
+            "Исходные": init_params,
+            "Расчетные": calculated_params
+        }
+        st.write(pd.DataFrame(result_dict).set_index("Параметр"))
+
     with col2:
-        st.line_chart(pump_curve.set_index("debit")["eff"])
-
-    mdf = calculate_DF(df, folder=data_folder)
-    Q = mdf.iloc[-1]
-    st.write(Q.to_dict())
-    Q = Q["X_kg_sec"] * 86400 / Q["res_liquid_density_kg_m3"]
-    st.write(f"Расчетный дебит - {Q:.1f} м^3")
-    pressure = mdf["startP"][1:]
-    df_pressure = pd.DataFrame(mdf["startP"][1:])
-    df_pressure["Давление"] = pd.Series(["0", "Забойное", "На приеме", "На выкиде", "Устьевое"])
-    st.write(df_pressure)
-
-    fig = go.Figure(
-        data=[go.Scatter(x=[perforation, pump_depth, pump_depth - 100, 0], y=pressure)],
-        layout=go.Layout(
-            title=go.layout.Title(text="Градиент давления")
-        ))
-    st.write(fig)
-
-    fig = go.Figure()
-    fig.add_trace(go.Scatter(x=pump_curve["debit"], y=pump_curve["pressure"]))
-    fig.add_trace(go.Scatter(x=pump_curve["debit"], y=pump_curve["eff"]))
-    fig.add_vline(x=Q, line_width=3, line_dash="dash", line_color="green")
-    st.write(fig)
+        # Show pump curve
+        pump_curve = pump_curves.loc[dataset["model"]].sort_values(by="debit")
+        show_pump_curves(pump_curve)
 
     # st.write("Моделирование периодического режима")
     # well_973 = pd.read_csv("~/well_973.csv", parse_dates=["index"])
