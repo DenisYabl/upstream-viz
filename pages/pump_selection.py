@@ -10,7 +10,7 @@ from upstream.pumpselection.PumpSelection.Lyapkov.PumpSelectionAuto import PumpS
 def app():
     data_folder = config.get_data_folder()
     st.header("Подбор УЭЦН")
-    dataset = pd.read_csv(path.join(data_folder, "input_dataset.csv"))  # TODO input_dataset.csv <- from platform
+    dataset = pd.read_csv(path.join(data_folder, "input_dataset.csv"))  # TODO Избавиться
 
     pump_path = path.join(data_folder, "pump_curve")
     inclination_path = path.join(data_folder, "inclination")
@@ -24,28 +24,7 @@ def app():
     well_list = inclination.sort_values("wellNum")["wellNum"].unique()
     start_well_idx = int(np.where(well_list == '1817')[0][0])
 
-    # TODO Перенести свойства жидкости на сайдбар
-    with st.beta_expander("Свойства жидкости"):
-        with st.form("Свойства жидкости"):
-            cols = st.beta_columns(9)
-            base_properties = [('OilSaturationP', dataset['OilSaturationP'].iloc[0], "Давление насыщения"),
-                              ('PlastT', dataset['PlastT'].iloc[0], "Пластовая температура"),
-                              ('GasFactor', dataset['GasFactor'].iloc[0], "Газовый фактор"),
-                              ('SepOilWeight', dataset['SepOilWeight'].iloc[0], "Плотность сепарированной нефти"),
-                              ('PlastWaterWeight', dataset['PlastWaterWeight'].iloc[0], "Плотность пластовой воды"),
-                              ('GasDensity', dataset['GasDensity'].iloc[0], "Плотность газа"),
-                              ('SepOilDynamicViscosity', dataset['SepOilDynamicViscosity'].iloc[0], "Вязкость нефти"),
-                              ('VolumeOilCoeff', dataset['VolumeOilCoeff'].iloc[0], "Объемный коэффициент"),
-                              ('neftWellopVolumeWater', dataset['neftWellopVolumeWater'].iloc[0], "Обводненность")]
-            property_dict = {}
-            for i, col in enumerate(cols):
-                prop = base_properties[i]
-                property_dict.update({prop[0]: col.text_input(f"{prop[2]}", prop[1])})
-            submitted = st.form_submit_button("Обновить")
-            if submitted:
-                for key in list(property_dict.keys()):
-                    dataset[key] = float(property_dict[key])
-
+    liquid_property_dict = {}
     with st.sidebar:
         option = st.selectbox('Выберите скважину из списка', well_list, index=start_well_idx)
         dataset["wellNum"].iloc[0] = option
@@ -55,6 +34,21 @@ def app():
             debit = st.text_input(f"Суточный дебит", dataset["dailyDebit"].iloc[0])
             pump_depth = st.text_input(f"Предыдущая глубина установки насоса", dataset["pumpDepth"].iloc[0])
             perforation = st.text_input(f"Глубина перфорации", dataset["perforation"].iloc[0])
+            with st.beta_expander("Свойства жидкости"):
+                base_properties = [('OilSaturationP', dataset['OilSaturationP'].iloc[0], "Давление насыщения"),
+                                   ('PlastT', dataset['PlastT'].iloc[0], "Пластовая температура"),
+                                   ('GasFactor', dataset['GasFactor'].iloc[0], "Газовый фактор"),
+                                   ('SepOilWeight', dataset['SepOilWeight'].iloc[0], "Плотность сепарированной нефти"),
+                                   (
+                                   'PlastWaterWeight', dataset['PlastWaterWeight'].iloc[0], "Плотность пластовой воды"),
+                                   ('GasDensity', dataset['GasDensity'].iloc[0], "Плотность газа"),
+                                   ('SepOilDynamicViscosity', dataset['SepOilDynamicViscosity'].iloc[0],
+                                    "Вязкость нефти"),
+                                   ('VolumeOilCoeff', dataset['VolumeOilCoeff'].iloc[0], "Объемный коэффициент"),
+                                   ('neftWellopVolumeWater', dataset['neftWellopVolumeWater'].iloc[0], "Обводненность")]
+
+                for prop in base_properties:
+                    liquid_property_dict.update({prop[0]: st.text_input(f"{prop[2]}", prop[1])})
             st.form_submit_button("Подобрать ЭЦН")
 
     dataset["ZaboyP"].iloc[0] = float(p_zaboy)
@@ -62,7 +56,8 @@ def app():
     dataset["dailyDebit"].iloc[0] = float(debit)
     dataset["pumpDepth"].iloc[0] = float(pump_depth)
     dataset["perforation"].iloc[0] = float(perforation)
-    # st.write(dataset)
+    for key in list(liquid_property_dict.keys()):
+        dataset[key] = float(liquid_property_dict[key])
 
     with st.spinner("Выполнение расчета"):
         row = dataset.iloc[0]
