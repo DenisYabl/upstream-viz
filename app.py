@@ -2,8 +2,10 @@ import streamlit as st
 
 # Custom imports
 from multipage import MultiPage
-from pages import start, tubing_selection, analysis, pump_selection, virtual_flow_meter, well_what_if, potentials, \
-    pump_starvation, well_graphics, pipeline_calculation
+from pages import start
+from pages.well import virtual_flow_meter, well_graphics, pump_starvation, well_what_if, pump_selection, \
+    tubing_selection, analysis, potentials
+from pages.pipe import pipeline_calculation
 
 st.set_page_config(
     page_title="ИПР ЦУД",

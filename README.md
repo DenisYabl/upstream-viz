@@ -18,7 +18,8 @@ streamlit run app.py
 - Добавить в app.py нужный импорт и строку с добавлением страницы. Пример:
 
 ```python
-from pages import tubing_selection
+
+from pages.well import tubing_selection
 
 app.add_page("Подбор НКТ", tubing_selection.app)
 ```
