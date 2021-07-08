@@ -32,7 +32,7 @@ class MultiPage:
     def run(self):
         col1, col2 = st.beta_columns(2)
         with col1:
-            cat = st.radio("Подсистема", ["Мехподъем", "Трубопровод"])
+            cat = st.selectbox("Подсистема", ["Мехподъем", "Трубопровод"])
 
         with col2:
             # Dropdown to select the page to run
