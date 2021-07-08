@@ -11,3 +11,4 @@ networkx~=2.5.1
 numba~=0.53.1
 stqdm~=0.0.4
 decorator~=4.4.2
+pyvis~=0.1.9

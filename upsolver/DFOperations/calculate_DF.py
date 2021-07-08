@@ -5,7 +5,7 @@ from upsolver.Tools.HE2_Logger import getLogger
 logger = getLogger(__name__)
 
 
-def calculate_DF(dataframe, folder):  # FIXME Set folder in config
+def calculate_DF(dataframe, folder, return_graph=False):  # FIXME Set folder in config
     G, calc_df, df_to_graph_edges_mapping = make_oilpipe_schema_from_OT_dataset(
         dataframe, folder=folder)
     solver = HE2_Solver(G)
@@ -44,4 +44,4 @@ def calculate_DF(dataframe, folder):  # FIXME Set folder in config
             V = Q / Area
             calc_df.loc[index, 'velocity_m_sec'] = V
 
-    return calc_df
+    return calc_df if not return_graph else calc_df, G

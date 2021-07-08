@@ -3,9 +3,9 @@
 
 ## Требования
 
-- streamlit=0.83.0
-- upstreampy=...
-
+- requirements.txt
+- upstreampy~=0.1.0
+- ot_simple_connector~=0.1.7
 
 ## Запуск
 ```bash
