@@ -44,4 +44,7 @@ def calculate_DF(dataframe, folder, return_graph=False):  # FIXME Set folder in 
             V = Q / Area
             calc_df.loc[index, 'velocity_m_sec'] = V
 
-    return calc_df if not return_graph else calc_df, G
+    if return_graph:
+        return calc_df, G
+    else:
+        return calc_df

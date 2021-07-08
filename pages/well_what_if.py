@@ -100,7 +100,7 @@ def app():
     with col1:
         st.subheader("Расчетные параметры")
         # Calculate well params
-        mdf = calculate_DF(df, folder=data_folder)
+        mdf = calculate_DF(df, data_folder)
         # st.write(mdf)
         Q = mdf.iloc[-1]
         Q = Q["X_kg_sec"] * 86400 / Q["res_liquid_density_kg_m3"]
