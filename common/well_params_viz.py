@@ -7,7 +7,7 @@ from common import otp
 get_data_conf = config.get_conf("get_data.yaml")
 
 
-def show():
+def show(show_pump_params=False):
     st.subheader("Параметры работы скважины")
     with st.form("Параметры работы скважины"):
         col1, col2, col3, col4 = st.beta_columns(4)
@@ -43,11 +43,25 @@ def show():
             num_samples = st.number_input("Количество точек с подписями", min_value=0, max_value=100, value=10)
         st.form_submit_button("Показать данные")
 
+    if bool(selected_well) & show_pump_params:
+        pump_query = f""" | {get_data_conf["well"]["pump"]}
+        | search __well_num="{selected_well}"
+        """
+        pump_df = otp.get_data(pump_query)
+        cols = ["pump_model", "pump_depth", "perf_depth"]
+        st.write(
+            pump_df[cols].rename({
+                "pump_model": "Модель насоса",
+                "pump_depth": "Глубина спуска",
+                "perf_depth": "Глубина перфорации"
+            }, axis=1)
+        )
+
     if bool(selected_well) & bool(selected_params) & bool(date_range):
         tws, twf = [int(d.strftime("%s")) for d in date_range]  # FIXME Time zones!
         cols = [params[par] for par in selected_params]
         params_query = f"""
-            | {get_data_conf["virtual_flow_meter"]["well_params"]}
+            | {get_data_conf["well"]["params"]}
             | search _time>={tws} AND _time<{twf} 
             | search __well_num="{selected_well}"
         """
@@ -67,7 +81,7 @@ def show():
                 y=f"{col_rus}:Q"
             ).properties(
                 height=150,
-                width=1000
+                width=1200
             ).transform_sample(1000).add_selection(resize)
             text = alt.Chart(idf)\
                 .mark_text(

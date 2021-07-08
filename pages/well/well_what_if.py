@@ -5,7 +5,6 @@ from altair import datum
 
 import config
 from os import path
-import plotly.graph_objects as go
 from upsolver.DFOperations.calculate_DF import calculate_DF
 import altair as alt
 
