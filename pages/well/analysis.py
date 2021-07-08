@@ -89,6 +89,7 @@ def df_styler(df):
 
 
 def app():
+    st.header("Анализ мех.фонда")
     conf = config.get_conf("config.yaml")
     col1, col2 = st.beta_columns(2)
     with col1:

@@ -120,7 +120,7 @@ def app():
             cable_weight=float(cable_weight),
             p_head=int(p_head),
             pump_depth=int(pump_depth),
-            packers=[int(p) for p in packers.replace(" ", "").split(",")],
+            packers=[int(p.strip()) for p in packers.split(",")],
             safety_limit=float(safety_limit),
             eps_limit=0.02,
             keep="fit",
