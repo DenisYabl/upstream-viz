@@ -3,6 +3,8 @@ upsolver/
 notebooks/
 .idea/
 ot_simple_connector/
+temp.html
+*.tgz
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
