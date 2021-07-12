@@ -1,5 +1,6 @@
 import streamlit as st
 import pandas as pd
+import numpy as np
 from typing import List
 
 import config
@@ -35,6 +36,7 @@ def read_cable(cable_path: str) -> pd.DataFrame:
     return cable_df.set_index("cable")
 
 
+# TODO. Перенести в upstreampy/nkt
 def calculate_extra_fields(res_dict: List[dict]):
     # наименее прочная ступень, на нее приходится какая-то нагрузка (из поля load)
     weakest_max_load = min([part["max_load"] for part in res_dict])
@@ -68,10 +70,22 @@ def df_styler(df: pd.DataFrame):
         "Вес ступени, т": "{:.1f}",
         "Макс. нагрузка на подрыв, т": "{:.1f}"
     }
+
     df_styled = df.sort_values("order", ascending=False) \
         .rename(rename_dict, axis=1)[rename_dict.values()] \
-        .style.format(format_dict)
+        .style \
+        .format(format_dict)\
+        .apply(highlight_overweight, axis=None)
+
     return df_styled
+
+
+def highlight_overweight(df):
+    color = "#ffcccb"
+    is_greater = df["Общий вес, т"] > df["Макс. нагрузка на подрыв, т"]
+    df_background = pd.DataFrame('background-color: ', index=df.index, columns=df.columns)
+    df_background["Общий вес, т"] = np.where(is_greater, f"background: {color}", df_background["Общий вес, т"])
+    return df_background
 
 
 def app():
