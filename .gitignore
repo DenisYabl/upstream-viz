@@ -5,6 +5,7 @@ notebooks/
 ot_simple_connector/
 temp.html
 *.tgz
+labels.csv
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
