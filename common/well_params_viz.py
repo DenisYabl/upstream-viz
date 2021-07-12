@@ -76,7 +76,7 @@ def show(show_pump_params=False):
         resize = alt.selection_interval(bind='scales')
         for col, col_rus in zip(cols, selected_params):
             idf = df[col].dropna().rename(col_rus).reset_index()
-            chart = alt.Chart(idf).mark_line(interpolate="cardinal").encode(
+            chart = alt.Chart(idf).mark_line().encode(
                 x=alt.X("dt:T", axis=alt.Axis(title="")),
                 y=f"{col_rus}:Q"
             ).properties(
