@@ -10,14 +10,11 @@ from pages.pipe import pipeline_calculation
 st.set_page_config(
     page_title="ИПР ЦУД",
     layout="wide",
-    page_icon="random"
+    page_icon="./images/slavneft-logo.png"
 )
 
 # Create an instance of the app
 app = MultiPage()
-
-# Title of the main page
-st.title("Центр Управления Добычей")
 
 # Add all your applications (pages) here
 app.add_page("Мехподъем", "Стартовая страница", start.app)

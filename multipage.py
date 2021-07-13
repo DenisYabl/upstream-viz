@@ -30,17 +30,16 @@ class MultiPage:
         })
 
     def run(self):
-        col1, col2 = st.beta_columns(2)
-        with col1:
-            cat = st.selectbox("Подсистема", ["Мехподъем", "Трубопровод"])
-
-        with col2:
-            # Dropdown to select the page to run
-            page = st.selectbox(
-                f"""Навигация по подсистеме "{cat}" """,
-                [page for page in self.pages if page["category"] == cat],
-                format_func=lambda page: page['title']
-            )
+        # Title of the main page
+        col_image, _, col_subsystem, col_module, _ = st.beta_columns((0.1, 0.02, 0.1, 0.2, 0.3))
+        col_image.image("./images/slavneft-logo-big.png")
+        cat = col_subsystem.selectbox("Подсистема", ["Мехподъем", "Трубопровод"])
+        # Dropdown to select the page to run
+        page = col_module.selectbox(
+            f"""Навигация по подсистеме "{cat}" """,
+            [page for page in self.pages if page["category"] == cat],
+            format_func=lambda _page: _page['title']
+        )
         st.markdown("---")
         # run the app function
         page['function']()
