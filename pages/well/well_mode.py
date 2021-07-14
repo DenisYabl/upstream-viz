@@ -4,7 +4,6 @@ import altair as alt
 from datetime import date
 import numpy as np
 from common.otp import get_data
-from ot_simple_connector.connector import Connector
 
 QUERY_WELLS = """| readFile format=parquet path=upstream/well_mode_freq 
 | stats count by __well_num"""
@@ -39,7 +38,8 @@ def app():
     labels = {}
     with st.form("Select mode"):
         for well in wells_for_labelling:
-            with st.beta_container():
+            col_charts, col_selectbox = st.beta_columns((3, 1))
+            with col_charts:
                 data_for_well = data[data["__well_num"] == well]
                 data_for_well["dt"] = pd.to_datetime(data_for_well["_time"], unit="s")
                 resize = alt.selection_interval(bind='scales')
@@ -49,16 +49,17 @@ def app():
                 ).mark_line().encode(
                     x="dt",
                     y="adkuControlStationEngineFreq:Q"
-                ).add_selection(resize).properties(height=100, width=600)
+                ).add_selection(resize).properties(height=100, width=500)
                 chart2 = alt.Chart(
                     data_for_well[data_for_well["adkuWellStatus"].notnull()],
                     title=f"Включение/выключение скважины {well}"
                 ).mark_line(interpolate="step-after").encode(
                     x="dt",
                     y="adkuWellStatus:Q"
-                ).add_selection(resize).properties(height=100, width=600)
+                ).add_selection(resize).properties(height=100, width=500)
                 chart = (chart1 | chart2).configure()
                 st.write(chart)
+            with col_selectbox:
                 labels.update(
                     {well: st.selectbox(f"Выберите режим для скважины {well}",
                                         ["const", "periodic", "const_with_stops", "off"],
