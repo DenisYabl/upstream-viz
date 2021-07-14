@@ -1,3 +1,5 @@
+analysis: "readFile format=parquet path=upstream/analysis"
+
 virtual_flow_meter:
   vfm: "readFile format=parquet path=upstream/vfm"
 
