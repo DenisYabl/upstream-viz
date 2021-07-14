@@ -33,7 +33,7 @@ class MultiPage:
         # Title of the main page
         col_image, _, col_subsystem, col_module, _ = st.beta_columns((0.1, 0.02, 0.1, 0.2, 0.3))
         col_image.image("./images/slavneft-logo-big.png")
-        cat = col_subsystem.selectbox("Подсистема", ["Мехподъем", "Трубопровод"])
+        cat = col_subsystem.selectbox("Подсистема", ["Мехподъем", "Трубопровод", "Служебные"])
         # Dropdown to select the page to run
         page = col_module.selectbox(
             f"""Навигация по подсистеме "{cat}" """,

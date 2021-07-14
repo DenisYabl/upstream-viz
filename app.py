@@ -4,7 +4,8 @@ import streamlit as st
 from multipage import MultiPage
 from pages import start
 from pages.well import virtual_flow_meter, well_params, pump_starvation, well_what_if, pump_selection, \
-    tubing_selection, analysis, potentials, well_mode
+    tubing_selection, analysis, potentials
+from pages.service import well_mode
 from pages.pipe import pipeline_calculation
 
 st.set_page_config(
@@ -26,9 +27,10 @@ app.add_page("Мехподъем", "Анализ и достижимость п�
 app.add_page("Мехподъем", "Подбор НКТ", tubing_selection.app)
 app.add_page("Мехподъем", "Подбор УЭЦН", pump_selection.app)
 app.add_page("Мехподъем", "Скважина", well_params.app)
-app.add_page("Мехподъем", "Режимы работы УЭЦН", well_mode.app)
 app.add_page("Трубопровод", "Стартовая страница", start.app)
 app.add_page("Трубопровод", "Расчет сети", pipeline_calculation.app)
+app.add_page("Служебные", "Стартовая страница", start.app)
+app.add_page("Служебные", "Режимы работы УЭЦН: разметка", well_mode.app)
 
 # The main app
 app.run()
